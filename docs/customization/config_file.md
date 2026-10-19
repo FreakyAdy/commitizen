@@ -8,6 +8,8 @@ The basic steps are:
     `cz_customize` is likely to be removed or renamed in the next major release.
     This change is still under discussion; you can continue using `cz_customize` for now and follow [#1385](https://github.com/commitizen-tools/commitizen/issues/1385) for the rationale, options, and current status.
 
+Relative `info_path` values are resolved relative to the directory containing the Commitizen configuration file, so `cz info` also works when invoked from a subdirectory. Absolute paths are used as-is.
+
 The following shows the **same configuration** in TOML, JSON, and YAML; use the format your project uses.
 
 Example:
