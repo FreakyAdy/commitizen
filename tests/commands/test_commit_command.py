@@ -449,6 +449,52 @@ def test_commit_command_body_length_limit(
 
 
 @pytest.mark.usefixtures("staging_is_clean")
+@pytest.mark.parametrize(
+    ("cli_limit", "expected_limit"),
+    [
+        pytest.param(None, 40, id="use-config-when-cli-option-is-unset"),
+        pytest.param(0, 0, id="explicit-zero-disables-configured-wrapping"),
+        pytest.param(20, 20, id="explicit-cli-limit-overrides-config"),
+    ],
+)
+def test_commit_command_body_length_limit_config_fallback(
+    cli_limit,
+    expected_limit,
+    config,
+    success_mock: MockType,
+    commit_mock,
+    mocker: MockFixture,
+):
+    """Use the configured body limit when Click supplies None for an omitted option."""
+    config.settings["body_length_limit"] = 40
+    body = (
+        "This body line is deliberately longer than forty characters so wrapping is visible."
+    )
+    mocker.patch(
+        "questionary.prompt",
+        return_value={
+            "prefix": "feat",
+            "subject": "add feature",
+            "scope": "",
+            "is_breaking_change": False,
+            "body": body,
+            "footer": "",
+        },
+    )
+
+    commands.Commit(config, {"body_length_limit": cli_limit})()
+    success_mock.assert_called_once()
+    committed_message = commit_mock.call_args[0][0]
+    body_lines = committed_message.split("\n")[2:]
+
+    if expected_limit:
+        assert len(body_lines) > 1
+        assert all(len(line) <= expected_limit for line in body_lines)
+    else:
+        assert body_lines == [body]
+
+
+@pytest.mark.usefixtures("staging_is_clean")
 def test_commit_command_body_length_limit_preserves_whitespace_only_lines(
     config,
     success_mock: MockType,
