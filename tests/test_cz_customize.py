@@ -655,6 +655,18 @@ def test_info_with_info_path(tmp_path, monkeypatch, config_info):
     assert "Test info" in cz.info()
 
 
+def test_info_with_info_path_from_subdirectory(tmp_path, monkeypatch, config_info):
+    project_root = tmp_path / "project"
+    nested_dir = project_root / "nested"
+    nested_dir.mkdir(parents=True)
+    (project_root / "info.txt").write_text("Test info", encoding="utf-8")
+    config_info.path = project_root / "pyproject.toml"
+
+    monkeypatch.chdir(nested_dir)
+    cz = CustomizeCommitsCz(config_info)
+    assert cz.info() == "Test info"
+
+
 def test_info_without_info(config_without_info):
     cz = CustomizeCommitsCz(config_without_info)
     assert cz.info() == ""
